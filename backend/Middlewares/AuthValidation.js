@@ -1,31 +1,30 @@
-const Joi = require('joi')
+const { body, validationResult } = require("express-validator");
 
-const signupValidation = (req, res, next) => {
-    const schema = Joi.object({
-        name: Joi.string().min(3).max(100).required(),
-        email: Joi.string().email().required(),
-        password: Joi.string().min(4).max(100).required()
-    });
-    const { err } = schema.validate(req.body);
-    if (err) {
-        return res.status(400)
-            .json({ message: "Bad request", err })
-    }
-    next();
-}
-const loginValidation = (req, res, next) => {
-    const schema = Joi.object({
-        email: Joi.string().email().required(),
-        password: Joi.string().min(4).max(100).required()
-    });
-    const {err} = schema.validate(req.body);
-    if (err) {
-        return res.status(400)
-            .json({ message: "Bad request", err })
-    }
-    next();
-}
-module.exports = {
-    signupValidation,
-    loginValidation
-}
+// Validation Middleware for Signup
+const signupValidation = [
+    body("name").notEmpty().withMessage("Name is required"),
+    body("email").isEmail().withMessage("Valid email is required"),
+    body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    },
+];
+
+// Validation Middleware for Login
+const loginValidation = [
+    body("email").isEmail().withMessage("Valid email is required"),
+    body("password").notEmpty().withMessage("Password is required"),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    },
+];
+
+module.exports = { signupValidation, loginValidation };

@@ -1,12 +1,14 @@
-const { signup } = require('../Controllers/AuthController');
-const { signupValidation } = require('../Middlewares/AuthValidation');
-const router = require('express').Router();
+const express = require("express");
+const { signup, login } = require("../Controllers/AuthController");
+const { signupValidation, loginValidation } = require("../Middlewares/AuthValidation");
+const { ensureAuthenticated } = require("../Middlewares/Auth"); 
 
-router.post('/login', (req,res)=> {
-    res.send('login success');
+const router = express.Router();
+
+router.post("/signup", signupValidation, signup);
+router.post("/login", loginValidation, login);
+router.get("/admin", ensureAuthenticated, (req, res) => {
+    res.status(200).json({ message: "Welcome Admin" });
 });
-
-router.post('/signup', signupValidation, signup);
-
 
 module.exports = router;

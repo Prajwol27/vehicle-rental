@@ -1,21 +1,36 @@
 const express = require('express');
 const app = express();
-const bodyParser = require('body-parser')
-const cors = require('cors')
-const authRouter = require('./Routes/Authrouter')
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const fs = require('fs');
 
+const authRouter = require('./Routes/AuthRouter');
+const vehicleRoutes = require('./Routes/VehicleRouter');
+const connectDB = require('./Models/db');
+const bookingRoutes = require('./Routes/BookingRouter');
 
 require('dotenv').config();
-require('./Models/db');
+connectDB();
+
+
+const uploadDir = './uploads';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
 
 
-app.get('/ping', (req,res) => {
-    res.send('PONG');
-});
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+};
+app.use(cors(corsOptions));
 
+app.use(bodyParser.json());
+app.use('/auth', authRouter);
+app.use('/api/vehicles', vehicleRoutes);
+app.use('/uploads', express.static('uploads'));
+app.use('/api/bookings', bookingRoutes);
 
-app.listen( process.env.PORT , (err) => {
-    if (err) console.log(err);
-    console.log(`running at port ${process.env.PORT}`);
-  });
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
